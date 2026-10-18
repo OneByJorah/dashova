@@ -2,7 +2,7 @@
 
 > **J1-PIPELINE Phase -1 (ORACLE)** — Read-only intent reconstruction
 > Generated: 2026-07-05 (verified against code state)
-> Repository: `OneByJorah/MSPDash`
+> Repository: `OneByJorah/dashova`
 > Status: Intent Reconstructed (verified, minor corrections applied)
 
 ---
@@ -39,7 +39,7 @@ Managed Service Providers (MSPs) operate dozens — sometimes hundreds — of cl
 ### Why Existing Tools Were Insufficient
 
 | Tool | Problem |
-|------|---------|
+| ------ | --------- |
 | Commercial SIEM (Splunk, Sumo Logic) | Expensive, SaaS-dependent, overkill for auth-only use case |
 | Open-source log managers (Graylog, Loki) | General-purpose log ingestion, not auth-event shaped; heavy infrastructure |
 | Built-in platform audit logs | Per-system, no aggregation; requires logging into each client environment |
@@ -56,9 +56,9 @@ This is a foundational **Observability** component in the JorahOne portfolio of 
 - Other JorahOne self-hosted tools that emit auth events consumable by the adapter layer
 - The broader JorahOne philosophy: **enterprise-grade, self-hosted, no SaaS lock-in, deployable in minutes**
 
-```
+```text
 JorahOne Ecosystem
-├── MSPDash                ← Auth event observability & aggregation
+├── dashova                ← Auth event observability & aggregation
 ├── [other MSP tools]      ← Emit auth events consumed by adapters
 └── [Hermes Agent]         ← Orchestration & pipeline layer
 ```
@@ -68,7 +68,7 @@ JorahOne Ecosystem
 ## Operational Classification
 
 | Dimension | Classification |
-|-----------|---------------|
+| ----------- | --------------- |
 | **Primary** | **Observability** — Auth event aggregation, service health monitoring, staff activity tracking |
 | **Secondary** | **Automation** — Adapter layer programmatically ingests events from external systems |
 | **Tertiary** | **Security** — Auth event audit trail supports security review and incident response |
@@ -108,8 +108,8 @@ JorahOne Ecosystem
 
 ## Repository Structure
 
-```
-MSPDash/
+```text
+dashova/
 ├── adapters/                  # Integration adapters (standalone Python scripts)
 │   ├── email/adapter.py       #   Functional: pushes email login events
 │   ├── osticket/adapter.py    #   Skeleton: docstring + config only
@@ -144,7 +144,7 @@ MSPDash/
 - **Admin UI hardcodes `http://localhost:42000`**: The admin page fetches from a hardcoded localhost URL. This won't work when accessed from a different machine or behind a reverse proxy.
 - **`/admin/events` returns `service_id` (integer) not service name**: The API returns `r.service_id` (an integer foreign key) but the admin UI displays it as `row.service`. The UI will show numeric IDs instead of service names — this is a bug.
 - **TimescaleDB not leveraged in code**: The compose uses `timescale/timescaledb:latest-pg16` but `app.py` uses standard SQLAlchemy models without hypertable creation or any TimescaleDB-specific features. The time-series capability is available but unused.
-- **Security audit in git history**: Commit `8458529` ("audit(MSPDash): sanitize email references") indicates a prior security review — a positive maturity signal.
+- **Security audit in git history**: Commit `8458529` ("audit(dashova): sanitize email references") indicates a prior security review — a positive maturity signal.
 - **Dependabot activity**: Two dependency bumps in git history (`python-multipart` 0.0.9→0.0.31, `python-dotenv` 1.0.1→1.2.2) suggest Dependabot was configured at some point, but no `.github/dependabot.yml` exists currently.
 - **No health checks**: The compose file defines no health checks for any service.
 - **No tests directory**: No `tests/` directory or test files exist anywhere in the repo.
