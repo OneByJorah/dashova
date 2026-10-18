@@ -1,110 +1,137 @@
 <div align="center">
 
-![MSPDash banner](docs/assets/banner.svg)
+![dashova banner](docs/assets/banner.svg)
 
-# MSPDash
+# dashova
 
-**MSP dashboard for monitoring client infrastructure — uptime, alerts, ticket integration, and client-facing status pages.**
+**Self-hosted IT ops dashboard for MSPs — auth-event observability, service inventory, and a lightweight admin view over Docker Compose.**
 
-[![GitHub release](https://img.shields.io/github/v/release/OneByJorah/MSPDash?color=f472b6&label=release&logo=github)](https://github.com/OneByJorah/MSPDash/releases)
-[![PyPI version](https://img.shields.io/pypi/v/mspdash?color=f472b6&label=pip&logo=pypi)](https://pypi.org/project/mspdash/)
+Formerly **MSPDash**.
+
+[![GitHub release](https://img.shields.io/github/v/release/OneByJorah/dashova?color=FFB300&label=release&logo=github)](https://github.com/OneByJorah/dashova/releases)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?color=FFB300&logo=open-source-initiative&logoColor=FFB300)](https://opensource.org/licenses/MIT)
 
 </div>
 
-![MSPDash screenshot](docs/assets/screenshot.png)
+![dashova admin dashboard](docs/screenshots/admin-dashboard.png)
 
 ## What This Is
 
-MSP dashboard for monitoring client infrastructure — uptime, alerts, ticket integration, and client-facing status pages.
+dashova is a small, self-hosted stack with three services:
 
-Built for operators who want a self-hosted, Docker-deployed solution they control.
+- **dashboard** — a static admin page (nginx) showing recent staff login events
+- **api** — a FastAPI service that ingests and stores auth events
+- **timescaledb** — PostgreSQL 16 + TimescaleDB for event storage
+
+Everything runs locally via Docker Compose. No cloud dependencies.
 
 ## Quick Start
 
-### pip
-
 ```bash
-pip install mspdash
+git clone https://github.com/OneByJorah/dashova.git
+cd dashova
+cp .env.example .env
+docker compose up -d --build
 ```
 
-### Docker (recommended)
+Seed a few demo events (documentation-range IPs, fake names):
 
 ```bash
-git clone https://github.com/OneByJorah/MSPDash.git
-cd MSPDash
-docker compose up -d
+curl -s -X POST http://127.0.0.1:42000/ingest/service-login \
+  -H 'Content-Type: application/json' \
+  -d '{"staff_email":"Avery Quinn","service_name":"portal-gateway","source_ip":"203.0.113.10"}'
 ```
 
-### From Source
+Then open:
+
+- **Dashboard:** `http://127.0.0.1:3000`
+- **API health:** `http://127.0.0.1:42000/health`
+
+Stop and remove everything (including the database volume):
 
 ```bash
-git clone https://github.com/OneByJorah/MSPDash.git
-cd MSPDash
-pip install -r requirements.txt
-python3 app.py
+docker compose down -v
 ```
 
-## Install
+## API
 
-### pip
+The API exposes exactly three endpoints:
 
-```bash
-pip install mspdash
-```
-
-### Docker
-
-```bash
-git clone https://github.com/OneByJorah/MSPDash.git
-cd MSPDash
-docker compose up -d
-```
-
-### From Source
-
-```bash
-git clone https://github.com/OneByJorah/MSPDash.git
-cd MSPDash
-pip install -r requirements.txt
-python3 app.py
-```
+| Endpoint | Method | Purpose |
+| --- | --- | --- |
+| `/health` | GET | Health probe — returns `{"status":"ok"}` |
+| `/ingest/service-login` | POST | Record a staff login event (`staff_email`, `service_name`, optional `source_ip`, `user_agent`, `metadata`) |
+| `/admin/events` | GET | List recent events (`?service=`, `?limit=`) |
 
 ## Features
 
-- **Self-hosted** — no cloud dependencies, run on your own hardware
-- **Docker Compose** — full stack deployment with one command
-- **pip package** — install via PyPI
-- **Dark theme** — operational, clean UI
+- **Auth-event ingestion** — POST login events from any tooling you run
+- **Service inventory** — services are created automatically on first sighting
+- **Admin dashboard** — dark, single-page view of recent activity
+- **Docker Compose** — one command brings up the full stack
+- **CORS-scoped API** — the API only accepts browser origins you list in `ALLOWED_ORIGINS`
 
-## Features
+## Windows
 
-- **MSP client dashboard** — multi-tenant client portal
-- **Uptime monitoring** — status checks for client infrastructure
-- **Alert integration** — ticket and notification routing
-- **Client-facing status pages** — public status for each client
-- **Docker Compose deployment** — multi-service stack
-- **Dark theme** — MSP-operational aesthetic
+`install.ps1` is a PowerShell-only installer for Docker Desktop hosts:
 
+```powershell
+.\install.ps1
+```
 
-## Tech Stack
+It creates `.env` from `.env.example` and runs `docker compose up --build -d`. On Linux/macOS use `install.sh` or the Quick Start above.
 
-- **Backend** — Python 3.11+, pydantic, pyyaml
-- **Deployment** — Docker Compose, pip install
-- **Configuration** — environment variables, config files
+## Screenshots
 
-## Package Badges
+Captured against the live local stack with demo data (`scripts/screenshots.mjs`).
 
-[![GitHub release](https://img.shields.io/github/v/release/OneByJorah/MSPDash?color=f472b6&label=release&logo=github)](https://github.com/OneByJorah/MSPDash/releases)
-[![PyPI version](https://img.shields.io/pypi/v/mspdash?color=f472b6&label=pip&logo=pypi)](https://pypi.org/project/mspdash/)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?color=FFB300&logo=open-source-initiative&logoColor=FFB300)](https://opensource.org/licenses/MIT)
+| Admin dashboard |
+| --- |
+| ![Admin dashboard](docs/screenshots/admin-dashboard.png) |
+
+## Project Layout
+
+```text
+api/          FastAPI service (app.py, Dockerfile, requirements.txt)
+admin/        Static dashboard page served by nginx
+adapters/     Reference adapters (email, osticket, password-reset)
+scripts/      screenshots.mjs — Playwright capture with scrub checks
+tests/        pytest suite for the API
+```
+
+## Limitations (read this)
+
+- **Demo-mode defaults.** `.env.example` ships with `change-me` credentials for local use. Change every one of them before exposing anything to a network.
+- **No authentication on the dashboard.** The admin page and `/admin/events` are unauthenticated. Keep the ports bound to localhost or put a reverse proxy with auth in front.
+- **Telegram variables are placeholders.** `TELEGRAM_BOT_TOKEN` / `TELEGRAM_ADMIN_CHAT_ID` exist in `.env.example` but no code reads them yet.
+- **No PyPI package.** Install via Docker; `pip install dashova` does not exist.
+- **Local image tag only.** `docker compose up --build` builds and tags `ghcr.io/onebyjorah/dashova:latest` locally. It is not pulled from a registry.
+- **Single-node by design.** No clustering, no HA, no multi-tenant isolation beyond the `service` field on events.
+
+## Development
+
+```bash
+# run the API tests (SQLite fallback works without Postgres)
+pip install -r api/requirements.txt pytest pytest-asyncio httpx
+pytest tests/ -v
+
+# lint markdown / Dockerfile / secrets (what CI runs)
+markdownlint-cli2 "**/*.md"
+hadolint Dockerfile api/Dockerfile
+```
+
+Re-capture screenshots with the stack running:
+
+```bash
+npm install --no-save playwright && npx playwright install --with-deps chromium
+BASE_URL=http://127.0.0.1:3000 node scripts/screenshots.mjs
+```
 
 ## Contributing
 
-Contributions are welcome. [Open an issue](https://github.com/OneByJorah/MSPDash/issues) to report a bug or request a feature.
+Contributions are welcome. [Open an issue](https://github.com/OneByJorah/dashova/issues) to report a bug or request a feature.
 
 ## License
 

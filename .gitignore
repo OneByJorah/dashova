@@ -6,3 +6,4 @@ __pycache__
 reports/
 # OneByJorah portfolio tooling
 .venv-screenshot/
+node_modules/

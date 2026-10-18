@@ -18,7 +18,7 @@ COPY . .
 EXPOSE 42000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:42000/health')" || exit 1
+    CMD ["python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:42000/health')"]
 
 USER app
 

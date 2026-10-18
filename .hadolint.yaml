@@ -1,1 +1,5 @@
 failure-threshold: warning
+ignored:
+  # Pinning apt versions breaks rebuilds when the snapshot is recycled;
+  # base image digests are the reproducibility lever instead.
+  - DL3008

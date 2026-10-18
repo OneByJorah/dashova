@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-echo "=== Installing MSPDash ==="
+echo "=== Installing dashova ==="
 
 if ! command -v docker &> /dev/null; then
     echo "Docker is required but not installed. Please install Docker first."
@@ -25,11 +25,13 @@ if [ ! -f .env ]; then
     fi
 fi
 
-echo "Building and starting MSPDash on port 42000..."
+echo "Building and starting dashova (dashboard on port 3000, API on port 42000)..."
 if docker compose version &> /dev/null; then
     docker compose up --build -d
 else
     docker-compose up --build -d
 fi
 
-echo "MSPDash installed. Access: http://localhost:42000"
+echo "dashova installed."
+echo "Dashboard: http://localhost:3000"
+echo "API:       http://localhost:42000/health"
