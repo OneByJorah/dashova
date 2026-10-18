@@ -21,7 +21,7 @@ jobs:
       - name: Check Python syntax
         run: python -m py_compile api/app.py
       - name: Check YAML syntax
-        run: python -m yaml docker-compose.yml
+        run: python -c "import yaml; yaml.safe_load(open('docker-compose.yml'))"
 
   test:
     runs-on: ubuntu-latest
