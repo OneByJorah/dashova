@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 
 from fastapi import Body, Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import (
     Column,
     DateTime,
@@ -65,7 +66,22 @@ def get_db():
     finally:
         db.close()
 
-app=FastAPI(title="MSP Dashboard API")
+app=FastAPI(title="Dashova API")
+
+_allowed_origins=[
+    o.strip()
+    for o in os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000",
+    ).split(",")
+    if o.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_allowed_origins,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 @app.middleware("http")
 async def add_security_headers(request, call_next):

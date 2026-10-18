@@ -1,7 +1,10 @@
 services:
   dashboard:
-    image: nginxdemos/hello:latest
-    container_name: MSPDash
+    image: ghcr.io/onebyjorah/dashova:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: dashova-dashboard
     ports:
       - "${DASHBOARD_PORT:-3000}:80"
     restart: unless-stopped
@@ -10,12 +13,13 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: msp-api
+    container_name: dashova-api
     ports:
       - "${API_PORT:-42000}:42000"
     environment:
       DATABASE_URL: ${DATABASE_URL}
       SECRET_KEY: ${SECRET_KEY:-change-me}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
     volumes:
       - ./api:/app
     restart: unless-stopped
@@ -31,18 +35,18 @@ services:
 
   timescaledb:
     image: timescale/timescaledb:latest-pg16
-    container_name: msp-timescaledb
+    container_name: dashova-timescaledb
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-msp}
+      POSTGRES_USER: ${POSTGRES_USER:-dashova}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
-      POSTGRES_DB: ${POSTGRES_DB:-msp}
+      POSTGRES_DB: ${POSTGRES_DB:-dashova}
     expose:
       - "5432"
     volumes:
       - tsdb:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U msp"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5

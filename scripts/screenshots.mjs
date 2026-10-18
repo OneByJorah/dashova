@@ -17,7 +17,14 @@ const RECORD = process.env.RECORD === "1";
 
 // Edit this list per project: one entry per screen worth showing.
 const PAGES = [
-  { name: "dashboard", path: "/", waitFor: "#app-ready" },
+  {
+    name: "admin-dashboard",
+    path: "/",
+    waitFor: "#rows",
+    // The admin page fetches /admin/events from the API; wait until the
+    // "Loading..." placeholder is replaced by real (demo) rows.
+    waitTextGone: "Loading...",
+  },
 ];
 
 const FORBIDDEN = [
@@ -54,6 +61,15 @@ for (const p of PAGES) {
   const page = await context.newPage();
   await page.goto(new URL(p.path, BASE).toString(), { waitUntil: "networkidle" });
   if (p.waitFor) await page.waitForSelector(p.waitFor, { timeout: 15000 });
+  if (p.waitTextGone) {
+    await page
+      .waitForFunction(
+        (t) => !document.body.innerText.includes(t),
+        p.waitTextGone,
+        { timeout: 15000 },
+      )
+      .catch(() => console.warn(`note: "${p.waitTextGone}" still visible on ${p.name}`));
+  }
 
   const text = (await page.evaluate(() => document.body.innerText)) + "\n" + (await page.title());
   const hits = FORBIDDEN.filter((f) => f.re.test(text)).map((f) => f.label);

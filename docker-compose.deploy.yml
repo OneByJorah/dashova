@@ -3,12 +3,12 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: msp-dashboard-api
+    container_name: dashova-api
     ports:
       - "127.0.0.1:5013:42000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@shared-timescaledb:5432/msp_dashboard
-      SECRET_KEY: msp-dashboard-secret-key
+      DATABASE_URL: postgresql://postgres:postgres@shared-timescaledb:5432/dashova
+      SECRET_KEY: dashova-demo-secret-key
     volumes:
       - ./api:/app
     restart: unless-stopped

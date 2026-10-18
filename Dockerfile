@@ -29,8 +29,8 @@ COPY requirements.txt .
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD curl -sf http://localhost:42000/health || exit 1
+    CMD ["curl", "-sf", "http://localhost:42000/health"]
 
 EXPOSE 42000
 
-CMD ["python3", "api/app.py"]
+CMD ["uvicorn", "api.app:app", "--host", "0.0.0.0", "--port", "42000"]
